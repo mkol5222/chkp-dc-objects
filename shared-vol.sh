@@ -3,6 +3,9 @@
 # SA to obtain pods
 kubectl create serviceaccount cp-api-explorer
 
+kubectl create clusterrole ns-reader --verb=get,list,watch --resource=namespaces,pods
+kubectl create clusterrolebinding ns-reader --clusterrole ns-reader --serviceaccount default:cp-api-explorer
+
 # RO access to pods in default ns
 cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
@@ -17,7 +20,7 @@ rules:
 EOF
 
 # bind role to SA
-kubectl create rolebinding api-explorer:pod-reader --role pod-reader --serviceaccount default:cp-api-explorer
+# kubectl create rolebinding api-explorer:pod-reader --role pod-reader --serviceaccount default:cp-api-explorer
 
 # if needed to recreate
 kubectl delete pod two-containers

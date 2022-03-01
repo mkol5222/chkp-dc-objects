@@ -9,9 +9,11 @@ while true; do
     
     TOKEN=$(cat /run/secrets/kubernetes.io/serviceaccount/token)
    
-    echo "Authorization: Bearer $TOKEN"
+    echo "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)"
     cat  /run/secrets/kubernetes.io/serviceaccount/ca.crt
     
+    echo "namespaces"
+    curl -s "https://kubernetes/api/v1/namespaces"  --header "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt
     
     curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt
     
@@ -41,7 +43,25 @@ while true; do
                 ]
     }' > /pod-data/dc.json
     
-    
+    NAMESPACES=$(curl -s "https://kubernetes/api/v1/namespaces"  --header "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt | jq -r '.items[].metadata.name')
+    for NAMESPACE in $NAMESPACES; do 
+        curl -s "https://kubernetes/api/v1/namespaces/$NAMESPACE/pods"  \
+            --header "Authorization: Bearer $TOKEN" \
+            --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt | \
+            jq -c -r '.items[] | .status.podIPs[]' | \
+            jq -c -r --slurp --arg ns "$NAMESPACE" '{namespace: $ns, ips: [.[] | .ip ]}' | \
+            jq -c '{
+                    name: "ips-\(.namespace)", 
+                    description: "IPs in namespace \(.namespace)",
+                    id: .namespace,
+                    ranges: .ips | unique, 
+                    }' 
+    done |  jq --slurp  '{
+                "version": "1.0",
+                "description": "Generic Data Center from Kubernetes API",
+                "objects":  . 
+                }' > /pod-data/all-ns.json
+
     sleep 30;
 
 done
