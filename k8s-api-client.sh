@@ -1,4 +1,4 @@
-apt update; apt install -y curl jq;
+apt update; apt install -y curl jq uuid-runtime;
 
 while true; do
     date >> /pod-data/index.html;
@@ -50,10 +50,11 @@ while true; do
             --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt | \
             jq -c -r '.items[] | .status.podIPs[]' | \
             jq -c -r --slurp --arg ns "$NAMESPACE" '{namespace: $ns, ips: [.[] | .ip ]}' | \
-            jq -c '{
+            jq -c --arg uuid "$(uuidgen)" '{
                     name: "ips-\(.namespace)", 
                     description: "IPs in namespace \(.namespace)",
                     id: .namespace,
+                    uid: $uuid,
                     ranges: .ips | unique, 
                     }' 
     done |  jq --slurp  '{
