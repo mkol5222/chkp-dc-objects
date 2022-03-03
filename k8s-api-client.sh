@@ -53,16 +53,16 @@ while true; do
             jq -c --arg uuid "$(uuidgen)" '{
                     name: "ips-\(.namespace)", 
                     description: "IPs in namespace \(.namespace)",
-                    id: .namespace,
                     uid: $uuid,
+                    id: "id-\(.namespace)",
                     ranges: .ips | unique, 
                     }' 
-    done |  jq --slurp  '{
+    done | jq -c 'select((.ranges|length)>0)' | jq --slurp  ' {
                 "version": "1.0",
                 "description": "Generic Data Center from Kubernetes API",
                 "objects":  . 
                 }' > /pod-data/all-ns.json
 
-    sleep 30;
+    sleep 10;
 
 done
