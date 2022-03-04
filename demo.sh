@@ -4,6 +4,6 @@ stopWebPods () { kubectl delete pod $(kubectl get pods -o json | jq -r '.items[]
 
 showPods () { kubectl get pods -o wide }
 
-demoPods () { while true; do showPods; startWebPods; sleep 15; showPods; stopWebPods; sleep 15; done }
+demoPods () { while true; do showPods; startWebPods; sleep 5; showPods; sleep 30; stopWebPods; sleep 30; done }
 
 demoPods
