@@ -5,24 +5,24 @@ while true; do
     echo Hello from the second container >> /pod-data/index.html;
     echo "<br>" >> /pod-data/index.html;
     
-    find /run/secrets/kubernetes.io/
+    #find /run/secrets/kubernetes.io/
     
     TOKEN=$(cat /run/secrets/kubernetes.io/serviceaccount/token)
    
-    echo "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)"
-    cat  /run/secrets/kubernetes.io/serviceaccount/ca.crt
+    #echo "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)"
+    #cat  /run/secrets/kubernetes.io/serviceaccount/ca.crt
     
-    echo "namespaces"
-    curl -s "https://kubernetes/api/v1/namespaces"  --header "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt
+    #echo "namespaces"
+    #curl -s "https://kubernetes/api/v1/namespaces"  --header "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt
     
-    curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt
+    #curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt
     
-    echo "insecure"
-    curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --insecure
+    #echo "insecure"
+    #curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --insecure
     
-    echo "prvni JQ"
-    curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt | jq -c -r '.items[] | .status.podIPs[]'
-    echo "cele JQ"
+    #echo "prvni JQ"
+    #curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt | jq -c -r '.items[] | .status.podIPs[]'
+    #echo "cele JQ"
     curl -s "https://kubernetes/api/v1/namespaces/default/pods"  --header "Authorization: Bearer $TOKEN" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt \
     | jq -c -r '.items[] | .status.podIPs[] ' \
     | jq --slurp 'map(.ip) as $ips | {
@@ -42,6 +42,10 @@ while true; do
                     }
                 ]
     }' > /pod-data/dc.json
+
+    echo "created /pod-data/dc.json"
+    cat /pod-data/dc.json
+    echo
     
     NAMESPACES=$(curl -s "https://kubernetes/api/v1/namespaces"  --header "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)" --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt | jq -r '.items[].metadata.name')
     for NAMESPACE in $NAMESPACES; do 
@@ -63,6 +67,10 @@ while true; do
                 "objects":  . 
                 }' > /pod-data/all-ns.json
 
-    sleep 10;
+    echo "created /pod-data/all-ns.json"
+    cat /pod-data/all-ns.json
+    echo 
+
+    sleep 5;
 
 done
