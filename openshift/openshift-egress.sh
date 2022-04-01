@@ -15,3 +15,8 @@ curl localhost:8080/apis/network.openshift.io/v1/netnamespaces
 
 curl -s localhost:8080/apis/network.openshift.io/v1/netnamespaces | jq -c -r '.items[] |{name: .netname, ips: .egressIPs} | select(.ips != null)'
 # {"name":"app1","ips":["192.168.1.100"]}
+
+# new project
+oc create ns app3; oc patch netnamespace  app3 --type=merge -p '{"egressIPs": ["192.168.1.30"]}'
+#namespace/app3 created
+#netnamespace.network.openshift.io/app3 patched
