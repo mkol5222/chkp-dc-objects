@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: middleware-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    environment: production
+    app: nginx
+
+# service account to read ns and pods
+spec:
+  serviceAccountName: {{ include "cp-dc-objects.serviceAccountName" . }}
+
+# folder served by web server
+  volumes:
+  - name: shared-data
+    emptyDir: {}
+  # sample file
+  - name: dcobj-sample
+    configMap:
+      name: dcobj-sample
+  # middleware script for worker
+  - name: main-sh
+    configMap:
+        name: main-sh
+
+  containers:
+
+  - name: web
+    image: nginx
+    volumeMounts:
+    
+    - name: shared-data
+      mountPath: /usr/share/nginx/html
+
+  - name: worker
+    image: ubuntu
+    volumeMounts:
+    - name: shared-data
+      mountPath: /pod-data
+    - mountPath: /usr/local/main
+      name: main-sh
+      readOnly: true
+    command: ["/bin/bash"]
+    args:
+      - "-c"
+      - "date | tee /pod-data/index.html; . /usr/local/main/oc-api-client.sh"

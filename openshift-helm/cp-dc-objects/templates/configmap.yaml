@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: main-sh
+  namespace: {{ .Release.Namespace }}
+data:
+  oc-api-client.sh: |-
+{{ .Files.Get "oc-api-client.sh" | indent 4 }}
