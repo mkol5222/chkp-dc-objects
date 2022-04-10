@@ -1,7 +1,7 @@
 Usage:
 
 run:
-  kubectl get route -o=jsonpath='curl http://{.items[0].spec.host}/dc.json' -n middleware; echo
+  kubectl get route -o=jsonpath='curl http://{.items[0].spec.host}/dc.json' -n  {{ .Release.Namespace }}; echo
 
 to access the service.
 
